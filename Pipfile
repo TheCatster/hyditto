@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+
+[packages]
+discord = "*"
+gino = "*"
+sqlalchemy = "*"
+alembic = "*"
+disputils = "*"
+ujson = "*"
+psycopg2 = "*"
+hy = "*"
+jedhy = "*"
+
+[requires]
+python_version = "3.9"
