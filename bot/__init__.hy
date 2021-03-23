@@ -44,7 +44,7 @@
 
 #@(bot.event
     (defn/a on_ready []
-      (setv bot.invite (.format invite_link (.user.id bot)))
+      (setv bot.invite (.format invite_link bot.user.id))
       (await (.setup database))
       (print "Logged in as" (.user bot) ".\nServing" (len (.users bot))
         "users in" (len (.guilds bot)) "guilds.\nInvite:" (.format invite_link (.user.id bot)))
@@ -60,19 +60,19 @@
       (.loop.create_task bot (sync_guild_data))))
 
 (defn/a presence_task []
-  (while (True)
+  (while True
     (await (.change_presence bot :activity (.Game discord (.choice random presence_strings))))
     (await (.sleep asyncio 60))))
 
 (defn/a sync_guild_data []
-  (while (True)
+  (while True
     (try
       (setv guild_data (await (preload_guild_data)))
       (if (guild_data) (setv bot.guild_data guild_data))
       (setv raid_data (await (preload_raid_data)))
       (if (raid_data) (setv bot.raid_data raid_data))
       (except [Exception]
-        (None)))
+        None))
     (await (.sleep asyncio 300))))
 
 #@(bot.before_invoke
@@ -86,13 +86,12 @@
 
 (defn extensions []
   (setv files (.rglob (Path "bot" "cogs") "*.py"))
-  (for [file [files]]
-    (yield (.replace (cut (.as_posix file) -3) "/" "."))))
+  (lfor file files (.replace (cut (.as_posix file) 0 -3) "/" ".")))
 
 (defn load_extensions [_bot]
-  (for [ext [(extensions)]]
+  (lfor ext (extensions)
     (try
-      (.load_extensions _bot ext)
+      (.load_extension _bot ext)
       (except [ex Exception]
         (print "Failed to load extension" ext "- exception:" ex)))))
 
