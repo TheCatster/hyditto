@@ -17,10 +17,10 @@
 (setv presence_strings ["hosting raids" "@Ditto help" "@Ditto host" "catching shinies"])
 
 (defn/a get_prefix [_bot message]
-  (setv prefix (.prefix config))
-  (if (not (isinstance (.channel message) (.DMChannel discord)))
-    (setv prefix (get_guild_prefix _bot (.guild.id message))))
-    (return (.when_mentioned_or(prefix) commands _bot message)))
+  (setv prefix config.prefix)
+  (if (not (isinstance message.channel discord.DMChannel))
+    (setv prefix (get_guild_prefix _bot message.guild.id)))
+  (return ((.when_mentioned_or commands prefix) _bot message)))
 
 (setv bot (.AutoShardedBot commands :command_prefix get_prefix))
 (setv bot.version __version__)
