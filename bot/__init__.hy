@@ -31,31 +31,31 @@
 (defn/a preload_guild_data []
   (setv guilds (await (.query.gino.all Guild)))
   (setv d {})
-  (for [guild [guilds]]
-    (setv (get d (.id guild)) guild))
+  (lfor guild guilds
+    (setv (get d guild.id) guild))
   (return d))
 
 (defn/a preload_raid_data []
   (setv raids (await (.query.gino.all Raid)))
   (setv d {})
-  (for [raid [raids]]
-    (setv (get d (.id raid)) raid))
+  (lfor raid raids
+    (setv (get d raid.id) raid))
   (return d))
 
 #@(bot.event
     (defn/a on_ready []
       (setv bot.invite (.format invite_link bot.user.id))
       (await (.setup database))
-      (print "Logged in as" (.user bot) ".\nServing" (len (.users bot))
-        "users in" (len (.guilds bot)) "guilds.\nInvite:" (.format invite_link (.user.id bot)))
+      (print "Logged in as" bot.user ".\nServing" (len bot.users)
+        "users in" (len bot.guilds) "guilds.\nInvite:" (.format invite_link bot.user.id))
       (with [f (open "bot/pokemon/data/pokemon.json" "r")]
         (setv bot.pokemon_images (.load ujson f)))
       (setv bot.guild_data (await (preload_guild_data)))
       (setv bot.raid_data (await (preload_raid_data)))
       (setv bot.queue_data {})
-      (for [raid [(.raid_data.values bot)]]
-        (setv (get bot.queue_data ((.id raid)"+"(.host_id raid)))
-          {"raid_id" (.id raid)  "user_id" (.host_id raid)  "guild_id" (.guild_id raid)}))
+      (lfor raid (bot.raid_data.values)
+        (setv (get bot.queue_data (raid.id "+" raid.host))
+          {"raid_id" raid.id  "user_id" raid.host_id  "guild_id" raid.guild_id}))
       (.loop.create_task bot (presence_task))
       (.loop.create_task bot (sync_guild_data))))
 
@@ -85,7 +85,7 @@
     (setv ctx.bot.active_commands (-= ctx.bot.active_commands 1))))
 
 (defn extensions []
-  (setv files (.rglob (Path "bot" "cogs") "*.py"))
+  (setv files (.rglob (Path "bot" "cogs") "*.hy"))
   (lfor file files (.replace (cut (.as_posix file) 0 -3) "/" ".")))
 
 (defn load_extensions [_bot]

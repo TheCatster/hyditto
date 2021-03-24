@@ -2,7 +2,7 @@
   [.config [Config]]
   [.embeds [create_embed wait_for_choice]])
 
-(setv config Config)
+(setv config (Config))
 
 (defn get_guild_prefix [_bot guild_id]
   (setv prefix (.prefix config))
