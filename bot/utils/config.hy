@@ -9,7 +9,7 @@
   (setv filename "")
   (setv config {})
   (setv prefix "")
-  (setv token "");;ODIzNjkwMTEzOTk2NDIzMTk5.YFkfMg.Oez2ty9BQ3sJboZAPVUexWOygVA")
+  (setv token "")
   (setv database "")
 
   (defn __init__ [self &optional [filename "config.json"]]
