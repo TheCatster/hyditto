@@ -1,11 +1,14 @@
-import discord
-from discord.ext import commands
+(import
+  discord
+  [discord.ext [commands]]
+  [bot.database.models [Profile]]
+  [bot.utils [create-embed get-guild-prefix]]
+  [bot.utils.helpers [get-create-user]])
 
-from bot.database.models import Profile
-from bot.utils import create_embed, get_guild_prefix
-from bot.utils.helpers import get_create_user
 
-
+(defn/a query-profile [^int user-id]
+  """: query profile, create if not exist"""
+  ())
 async def query_profile(user_id: int):
     """: query profile, create if not exist"""
     profile = await Profile.get(user_id)
