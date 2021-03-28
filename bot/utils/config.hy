@@ -2,7 +2,7 @@
   json
   os)
 
-(setv default_config {"prefix" "+"  "token" ""  "database" ""})
+(setv default-config {"prefix" "+"  "token" ""  "database" ""})
 
 (defclass Config []
 
@@ -17,12 +17,12 @@
     (setv self.config {})
     (if (not (.path.isfile os filename))
       (with [file (open filename "w")]
-        (.dump json default_config file)))
+        (.dump json default-config file)))
     (with [file (open filename)]
       (setv self.config (.load json file)))
-    (setv self.prefix (.config.get self "prefix" (.get default_config "prefix")))
-    (setv self.token (.config.get self "token" (.get default_config "token")))
-    (setv self.database (.config.get self "database" (.get default_config "database"))))
+    (setv self.prefix (.config.get self "prefix" (.get default-config "prefix")))
+    (setv self.token (.config.get self "token" (.get default-config "token")))
+    (setv self.database (.config.get self "database" (.get default-config "database"))))
   (defn store [self]
     (setv c {"prefix" self.prefix  "token" self.token  "database" self.database})
     (with [file (open self.filename "w")]

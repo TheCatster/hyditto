@@ -1,14 +1,14 @@
 (import
   [.config [Config]]
-  [.embeds [create_embed wait_for_choice]])
+  [.embeds [create-embed wait-for-choice]])
 
 (setv config (Config))
 
-(defn get_guild_prefix [_bot guild_id]
+(defn get-guild-prefix [_bot guild-id]
   (setv prefix config.prefix)
   (try
-    (setv guild_data (get _bot.guild_data guild_id))
-    (setv _prefix guild_data.prefix)
+    (setv guild-data (get _bot.guild-data guild-id))
+    (setv _prefix guild-data.prefix)
     (if (_prefix is not None) (setv prefix _prefix))
     (except [KeyError]
       None))
