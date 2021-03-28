@@ -1,17 +1,17 @@
 (import
   [typing [Tuple]]
   [bot.database.models [User]]
-  [bot.utils.formulas [xp_formula]]
+  [bot.utils.formulas [xp-formula]]
   ujson)
 
 (with [f (open "bot/levels.json" "r")]
   (setv LEVELS (.load ujson f)))
 
 
-(defn/a get_create_user [user_id]
-  (setv user (await (.get User user_id)))
+(defn/a get-create-user [user-id]
+  (setv user (await (.get User user-id)))
   (if-not user
-    (setv user (await (.create User :id user_id))))
+    (setv user (await (.create User :id user-id))))
   (return user))
 
 
@@ -20,15 +20,15 @@
     (yield (get _list name (+ name amount)))))
 
 
-(defn/a update_xp [^User user ^float modifier]
+(defn/a update-xp [^User user ^float modifier]
   (setv modifier (+= modifier 0.1))
-  (setv xp (xp_formula user modifier))
+  (setv xp (xp-formula user modifier))
   (await (.apply (.update user :xp xp)))
-  (setv og_level user.level)
-  (setv user_level 1)
+  (setv og-level user.level)
+  (setv user-level 1)
   (for [[level xp] [(.items LEVELS)]]
     (if (>= user.xp xp)
-      (setv user_level (int level))
+      (setv user-level (int level))
       (break)))
-  (await (.apply (.update user :level user_level)))
-  (return (, user (!= user_level og_level))))
+  (await (.apply (.update user :level user-level)))
+  (return (, user (!= user-level og-level))))

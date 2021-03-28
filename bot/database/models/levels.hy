@@ -4,5 +4,5 @@
 
 (defclass Level [db.Model]
   (setv __tablename__ "levels")
-  (setv set_level (.Column db db.BIGINT :primary_key True))
-  (setv set_xp (.Column db db.BIGINT)))
+  (setv set-level (.Column db db.BIGINT :primary-key True))
+  (setv set-xp (.Column db db.BIGINT)))
