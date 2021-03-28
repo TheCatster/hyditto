@@ -7,35 +7,30 @@
 
 
 (defn/a query-profile [^int user-id]
-  """: query profile, create if not exist"""
-  ())
-async def query_profile(user_id: int):
-    """: query profile, create if not exist"""
-    profile = await Profile.get(user_id)
-    if profile is None:
-        profile = await Profile.create(user_id=user_id)
-    return profile
+  #[[: query profile, create if not exist]]
+  (setv profile (await (.get Profile user-id)))
+  (if-not profile
+    (setv profile (await (.create Profile :user-id user-id))))
+  (return profile))
 
 
-async def send_changed_embed(ctx, changed: str, before: str, after: str):
-    embed = await create_embed(description=f"*{changed} changed*")
-    embed.set_thumbnail(url=ctx.author.avatar_url)
-    embed.add_field(name="From", value=before)
-    embed.add_field(name="To", value=after)
-    await ctx.send(embed=embed)
+(defn/a send-changed-embed [ctx ^str changed ^str before ^str after]
+  (setv embed (await (create-embed :description f"*{changed} changed*")))
+  (.set-thumbnail embed :url ctx.author.avatar-url)
+  (.add_field embed :name "From" :value before)
+  (.add_field embed :name "To" :value after)
+  (await (.send ctx :embed embed)))
 
 
-class Profiles(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(f"{type(self).__name__} Cog ready.")
-
-    @commands.group(invoke_without_command=True, pass_context=True)
-    async def profile(self, ctx, user_check: discord.User = None):
-        """*Look up your or your friends profile*
+(defclass Profiles [commands.Cog]
+  (defn __init__ [self bot]
+    (setv self.bot bot))
+  #@((.listener commands.Cog)
+      (defn/a on-ready [self]
+        (print "Profiles Cog ready.")))
+  #@((.group commands :invoke-without-command True :pass-context True)
+      (defn/a profile [self ctx &optional ^discord.User [user-check None]]
+        #[[*Look up your or your friends profile*
 
         `[user]` is optional and either a user-id or a user mention
         **Usage**: `{prefix}profile [user]`
@@ -48,87 +43,84 @@ class Profiles(commands.Cog):
         **Examples**:
             `{prefix}profile name Ditto`
             `{prefix}profile fc SW-000-0000`
-            `{prefix}profile timezone NYC`
-        """
-        author = user_check
-        if author is None:
-            author = ctx.author
-        user = await get_create_user(ctx.message.author.id)
-        profile = await query_profile(user.id)
-
-        embed = await create_embed()
-        if user.level is not None:
-            embed.add_field(name=":level_slider: Level", value=user.level)
-        if user.xp is not None:
-            embed.add_field(name=":bar_chart: XP", value=user.xp)
-        if user.times_hosted is not None:
-            embed.add_field(name=":metal: Times Hosted", value=user.times_hosted)
-        if profile.user_name != "Not Set":
-            embed.add_field(name="Character Name", value=profile.user_name)
-            embed.add_field(name="\u200c", value="\u200c")
-        if profile.timezone:
-            embed.add_field(name=":clock130: Timezone", value=profile.timezone)
-        if profile.friend_code != "Not Set":
-            embed.add_field(name="Friend Code", value=profile.friend_code)
-
-        if embed.fields:
-            embed.set_thumbnail(url=author.avatar_url)
-            embed.set_footer(text=f"Profile of {author.name}#{author.discriminator}")
-        else:
-            if user_check:
-                embed.description = (
-                    f"{user_check.mention} hasn't configured their profile yet!"
-                )
-            else:
-                prefix = get_guild_prefix(self.bot, ctx.guild.id)
-                embed.description = (
-                    f"**You haven't configured your profile yet!**\n"
-                    f"To configure your profile use: \n`{prefix}profile <key> <value>`\n"
-                    f"**Possible keys**: \n"
-                    f"`name, fc, timezone`\n"
-                    f"**Examples**:\n"
-                    f"`{prefix}profile name Ditto`\n"
-                    f"`{prefix}profile fc SW-000-0000`\n"
-                    f"`{prefix}profile timezone NYC`\n"
-                )
-        await ctx.send(embed=embed)
-
-    @profile.command(aliases=["name", "username"])
-    async def character(self, ctx, *, character_name: str):
-        profile = await query_profile(ctx.author.id)
-        await send_changed_embed(
-            ctx,
-            changed="Character name",
-            before=profile.user_name,
-            after=character_name,
-        )
-        await profile.update(user_name=character_name).apply()
-
-    @profile.command(aliases=["fc", "code"])
-    async def friendcode(self, ctx, friend_code: str):
-        profile = await query_profile(ctx.author.id)
-        friend_code = friend_code.upper()
-        if "SW-" not in friend_code:
-            friend_code = f"SW-{friend_code}"
-        await send_changed_embed(
-            ctx,
-            changed="Friend code",
-            before=profile.friend_code,
-            after=friend_code,
-        )
-        await profile.update(friend_code=friend_code).apply()
-
-    @profile.command()
-    async def timezone(self, ctx, *, timezone: str):
-        profile = await query_profile(ctx.author.id)
-        before = profile.timezone
-        if not before:
-            before = "Not Set"
-        await profile.update(timezone=timezone).apply()
-        await send_changed_embed(
-            ctx, changed="Timezone", before=before, after=profile.timezone
-        )
+            `{prefix}profile timezone NYC`]]
+        (setv author user-check)
+        (if-not author
+          (setv author ctx.author))
+        (setv user (await (get-create-user ctx.message.author.id)))
+        (setv profile (await (query-profile user.id)))
+        (setv embed (await (create-embed)))
+        (if user.level
+          (.add-field embed :name ":level_slider: Level" :value user.level))
+        (if user.xp
+          (.add-field embed :name ":bar_chart: XP" :value user.xp))
+        (if user.times-hosted
+          (.add-field embed :name ":metal: Times Hosted" :value user.times-hosted))
+        (if-not (= profile.user_name "Not Set")
+          (do
+            (.add-field embed :name "Character Name" :value profile.user-name)
+            (.add-field embed :name "\u200c" :value "\u200c")))
+        (if profile.timezone
+          (.add-field embed :name ":clock130: Timezone" :value profile.timezone))
+        (if profile.friend-code
+          (.add-field embed :name "Friend Code" :value profile.friend-code))
+        (if embed.fields
+          (do
+            (.set-thumbnail embed :url author.avatar-url)
+            (.set-footer embed :text f"Profile of {author.name}#{author.discriminator}"))
+          (do
+            (if user-check
+              (do
+                (setv embed.description f"{user-check.mention} hasn't configured their profile yet!"))
+              (do
+                (setv prefix (get-guild-prefix self.bot ctx.guild.id))
+                (setv embed.description
+                    #[f[**You haven't configured your profile yet!**\n
+                    To configure your profile use: \n`{prefix}profile <key> <value>`\n
+                    **Possible keys**: \n
+                    `name, fc, timezone`\n
+                    **Examples**:\n
+                    `{prefix}profile name Ditto`\n
+                    `{prefix}profile fc SW-000-0000`\n
+                    `{prefix}profile timezone NYC`\n]f]
+                )))))
+        (await (.send ctx :embed embed))))
+  #@((.command profile :aliases ["name" "username"])
+      (defn/a character [self ctx &rest ^str character-name]
+        (setv profile (await (query-profile ctx.author.id)))
+        (setv character-name (.join " " character-name))
+        (await (send-changed-embed
+                  ctx
+                  :changed "Character name"
+                  :before profile.user-name
+                  :after character-name))
+        (await (.apply (.update profile :user-name character-name)))))
+  #@((.command profile :aliases ["fc" "code"])
+      (defn/a friendcode [self ctx ^str friend-code]
+        (setv profile (await (query-profile ctx.author.id)))
+        (setv friend-code (.upper friend-code))
+        (if-not (in "SW-" friend-code)
+          (setv friend-code f"SW-{friend-code}"))
+        (await (send-changed-embed
+                  ctx
+                  :changed "Friend code"
+                  :before profile.friend-code
+                  :after friend-code))
+        (await (.apply (.update profile :friend-code friend-code)))))
+  #@((.command profile)
+      (defn/a timezone [self ctx &rest timezone]
+        (setv profile (await (query-profile ctx.author.id)))
+        (setv timezone (.join " " timezone))
+        (setv before profile.timezone)
+        (if-not before
+          (setv before "Not Set"))
+        (await (.apply (.update profile :timezone timezone)))
+        (await (send-changed-embed
+                  ctx
+                  :changed "Timezone"
+                  :before before
+                  :after profile.timezone)))))
 
 
-def setup(bot):
-    bot.add_cog(Profiles(bot))
+(defn setup [bot]
+  (.add_cog bot (Profiles bot)))
