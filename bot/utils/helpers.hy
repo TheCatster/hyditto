@@ -10,7 +10,7 @@
 
 (defn/a get_create_user [user_id]
   (setv user (await (.get User user_id)))
-  (if (user is None)
+  (if-not user
     (setv user (await (.create User :id user_id))))
   (return user))
 

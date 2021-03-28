@@ -7,8 +7,7 @@
   [discord.ext [commands]]
   bot.database
   [bot.database.models [Guild Raid]]
-  [bot.utils [config get_guild_prefix]]
-  )
+  [bot.utils [config get_guild_prefix]])
 
 (setv __version__ "0.1.0")
 
@@ -77,12 +76,12 @@
 
 #@(bot.before_invoke
   (defn/a before_invoke [ctx]
-    (setv ctx.bot.total_commands (+= ctx.bot.total_commands 1))
-    (setv ctx.bot.active_commands (+= ctx.bot.active_commands 1))))
+    (setv ctx.bot.total_commands (+ ctx.bot.total_commands 1))
+    (setv ctx.bot.active_commands (+ ctx.bot.active_commands 1))))
 
 #@(bot.after_invoke
   (defn/a after_invoke [ctx]
-    (setv ctx.bot.active_commands (-= ctx.bot.active_commands 1))))
+    (setv ctx.bot.active_commands (- ctx.bot.active_commands 1))))
 
 (defn extensions []
   (setv files (.rglob (Path "bot" "cogs") "*.hy"))
