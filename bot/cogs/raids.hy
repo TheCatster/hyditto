@@ -72,106 +72,75 @@
               (setv raid-pokemon (+ raid-pokemon "Gmax ")))
             (if raid.shiny
               (setv raid-pokemon (+ raid-pokemon "Shiny ")))
-            (setv raid-pokemon (+ raid-pokemon (.capitalize raid.pokemon))))
-          (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
-          (try
-            (setv user-list (lfor ))
-            (except [e [Exception]]
-              (print e)
-              (await (.send ctx "An error has occurred."))
-              (return)))))))
-
-            try:
-                user_list = [
-                    [f"**-** <@{user['user_id']}>\n" for user in chunked]
-                    for chunked in chunk(users, 5)
-                ]
-
-            for page in user_list:
-                de_string = ""
-                for item in page:
-                    de_string += item
-                description.append(de_string)
-
-            embeds = [
-                discord.Embed(
-                    title="Raid Queue",
-                    description=f"**Current Pokemon:** "
-                    f"{raid_pokemon}\n\n"
-                    f"Current Queue:\n" + page,
-                    color=discord.Colour.purple(),
-                )
-                for page in description
-            ]
-
-            try:
-                for embed in embeds:
-                    embed.set_thumbnail(url=self.bot.pokemon_images[pokemon.lower()])
-
-            except Exception as e:
-                print(e)
-                await ctx.send(
-                    "An image for this pokemon cannot be found... contact the dev regarding this issue."
-                )
-                return
-
-            paginator = BotEmbedPaginator(ctx, embeds)
-            await paginator.run()
-
-    @commands.command()
-    async def join(self, ctx, *, raid_pokemon: str):
-        """*Join an existing Pokemon raid.*
+            (setv raid-pokemon (+ raid-pokemon (.capitalize raid.pokemon)))
+            (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
+            (try
+              (setv user-list (lfor chunked (chunk users 5) (lfor user chunked f"**-** <@{get user 'user_id'}>\n")))
+              (except [e [Exception]]
+                (print e)
+                (await (.send ctx "An error has occurred."))
+                (return)))
+            (for [page user-list]
+              (setv de-string "")
+              (for [item page]
+                (setv de-string (+ de-string item)))
+              (.append description de-string))
+            (setv embeds (lfor page description (.Embed discord
+              :title "Raid Queue"
+              :description (+ "**Current Pokemon:** {raid-pokemon}\n\nCurrent Queue:\n" page
+              :color (.purple discord.Colour)))))
+            (try
+              (for [embed embeds]
+                (.set-thumbnail embed :url (get self.bot.pokemon_images (.lower pokemon))))
+              (except [e [Exception]]
+                (print e)
+                (await (.send ctx "An image for this pokemon cannot be found... contact the dev regarding this issue."))
+                (return)))
+            (setv paginator (BotEmbedPaginator ctx embeds))
+            (await (.run paginator)))
+          (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again.")))))
+  #@((.command commands)
+      (defn/a join [self ctx &rest ^str raid-pokemon]
+        #[[*Join an existing Pokemon raid.*
 
         `[pokemon]` is the Pokemon raid you want to join
         **Usage**: `{prefix}join [pokemon]`
-        **Example**: `{prefix}join Pikachu`
-        """
-        raid = None
-        for raid_id, raid in self.bot.raid_data.items():
-            if raid.pokemon == raid_pokemon.lower() and raid.guild_id == ctx.guild.id:
-                raid = raid
-                break
-            else:
-                raid = None
-        if raid:
-            host_id = raid.host_id
-            queue = [
-                user
-                for user in self.bot.queue_data.values()
-                if user["raid_id"] == raid.id
-                if user["guild_id"] == ctx.guild.id
-            ]
-            if len(queue) == 0:
-                await ctx.send("No raid is running for this pokemon.")
-                self.bot.raid_data.pop(raid.id, None)
-                await raid.delete()
-                return
-            if ctx.message.author not in queue:
-                self.bot.queue_data[f"{raid.id}+{ctx.message.author.id}"] = {
-                    "raid_id": raid.id,
-                    "user_id": ctx.message.author.id,
-                    "guild_id": ctx.guild.id,
-                }
+        **Example**: `{prefix}join Pikachu`]]
+        (setv raid-pokemon (.join " " raid-pokemon))
+        (setv raid None)
+        (for [[raid-id raid] (.items self.bot.raid-data)]
+          (if (and (= raid.pokemon (.lower raid-pokemon)) (= raid.guild-id ctx.guild.id))
+            (do
+              (setv raid raid)
+              (break))
+            (setv raid None)))
+        (if raid
+          (do
+            (setv host-id raid.host-id)
+            (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "raid-id") raid.id) (= (get user "guild-id") ctx.guild.id)) user)))
+            (if (= (len queue) 0)
+              (do
+                (await (.send ctx "No raid is running for this pokemon."))
+                (.pop self.bot.raid-data raid.id None)
+                (await (.delete raid))
+                (return)))
+            (if-not (in ctx.message.author queue)
+              (do
+                (setv (get self.bot.queue-data f"{raid.id}+{ctx.message.author.id}") {"raid-id" raid.id  "user-id" ctx.message.author.id  "guild-id" ctx.guild.id})
+                (setv host (await (get-create-user host-id)))
+                (if (>= (len queue) 4)
+                  (await (update-xp :user host :modifier 0.2))
+                  (await (update-xp :user host :modifier 0)))
+                (setv participant (await (get-create-user ctx.message.author.id)))
+                (await (update-xp :user participant :modifer 0))
+                (await (.send ctx f"Added to queue for the {(.capitalize raid.pokemon)} raid!")))
+              (do
+                (await (.send ctx "You are already in the queue for this raid."))
+                (return))))
+          (do
+            (await (.send ctx "No raid is running for this pokemon."))
+            (return))))))
 
-                host = await get_create_user(host_id)
-                if len(queue) >= 4:
-                    await update_xp(user=host, modifier=0.2)
-                else:
-                    await update_xp(user=host, modifier=0)
-
-                participant = await get_create_user(ctx.message.author.id)
-
-                await update_xp(user=participant, modifier=0)
-
-                await ctx.send(
-                    f"Added to queue for the {raid.pokemon.capitalize()} raid!"
-                )
-            else:
-                await ctx.send("You are already in the queue for this raid.")
-                return
-        else:
-            await ctx.send("No raid is running for this pokemon.")
-            return
 
     @commands.command()
     async def leave(self, ctx, *, raid_pokemon: str):
@@ -335,6 +304,5 @@
 
         await ctx.send("Raid has been closed, and queue has been purged!")
 
-
-def setup(bot):
-    bot.add_cog(Raids(bot))
+(defn setup [bot]
+  (.add-cog bot (Raids bot)))
