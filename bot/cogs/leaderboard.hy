@@ -4,7 +4,7 @@
   [bot.utils [create-embed]])
 
 
-(defclass Levels [commands.Cog]
+(defclass Leaderboards [commands.Cog]
   (defn __init__ [self bot]
     (setv self.bot bot))
   #@((.listener commands.Cog)
@@ -18,11 +18,11 @@
         (setv leaders (await (.all gino_query.gino)))
         (setv board (lfor player leaders (, f"<@{player.id}>" player.level player.xp)))
         (setv description "")
-        (for [user [board]]
+        (for [user board]
           (setv description (+ description f"**{(+ (board.index user) 1)}.** {(get user 0)} | Level: {(get user 1)} | XP: {(get user 2)}\n")))
-        (setv msg (await (create-embed :title f"{(str ctx.guild)}" "'s Raid Leaderboard" :description description)))
+        (setv msg (await (create-embed :title f"{(str ctx.guild)}'s Raid Leaderboard" :description description)))
         (await (.send ctx :embed msg)))))
 
 
 (defn setup [bot]
-  (.add-cog bot (Levels bot)))
+  (.add-cog bot (Leaderboards bot)))

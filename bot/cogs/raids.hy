@@ -1,128 +1,91 @@
-import random
+(import
+  random
+  discord
+  [discord.ext [commands]]
+  [bot.utils [create-embed get-guild-prefix]]
+  [bot.database.models [Raid]]
+  [bot.utils.helpers [chunk get-create-user update-xp]]
+  [disputils [BotEmbedPaginator]])
 
-import discord
-from discord.ext import commands
 
-from bot.utils import create_embed, get_guild_prefix
-from bot.database.models import Raid
-from bot.utils.helpers import chunk, get_create_user, update_xp
-from disputils import BotEmbedPaginator
-
-
-class Raids(commands.Cog):
-    """:video_game:"""
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command()
-    async def raids(self, ctx):
-        """*Look at available raids.*
+(defclass Raids [commands.Cog]
+  #[[:video_game:]]
+  (defn __init__ [self bot]
+    (setv self.bot bot))
+  #@((.command commands)
+      (defn/a raids [self ctx]
+        #[[*Look at available raids.*
 
         **Usage**: `{prefix}raids`
-        **Example**: `{prefix}raids`
-        """
-        raids = [
-            raid
-            for raid in self.bot.raid_data.values()
-            if raid.guild_id == ctx.guild.id
-        ]
-
-        if len(raids) == 0:
-            await ctx.send(
-                "There are currently no raids running. You should start one!"
-            )
-            return
-
-        raid_list = []
-
-        try:
-            for chunked in chunk(raids, 5):
-                raid_list.append(
-                    [
-                        f"\n\n**-** {'Gmax' if raid.gmax else ''} {'Shiny' if raid.shiny else ''} {raid.pokemon.capitalize()}"
-                        for raid in chunked
-                    ]
-                )
-        except Exception as e:
-            print(e)
-            await ctx.send("An error has occurred.")
-            return
-
-        if len(raids) > 0:
-            description = []
-
-            for page in raid_list:
-                de_string = ""
-                for item in page:
-                    de_string += item
-                description.append(de_string)
-
-            embeds = [
-                discord.Embed(
-                    description=f"**Current Raids:**" + page,
-                    color=discord.Colour.purple(),
-                )
-                for page in description
-            ]
-
-            paginator = BotEmbedPaginator(ctx, embeds)
-            await paginator.run()
-        else:
-            await ctx.send("No raids running.")
-
-    @commands.command(
-        description="Shows the current queue for each gym, shows all if you don't include a gym name.",
-        usage="queue [gym]",
-    )
-    async def queue(self, ctx, *, pokemon: str):
-        """*Look up a raid's queue*
+        **Example**: `{prefix}raids`]]
+        (setv raids (lfor raid (.values self.bot.raid-data) (if (= raid.guild-id ctx.guild.id) raid)))
+        (if (= (len raids) 0)
+          (do
+            (await (.send ctx "There are currently no raids running. You should start one!"))
+            (return)))
+        (setv raid-list [])
+        (try
+          (for [chunked (chunk raids 5)]
+            (.append raid-list
+              (lfor raid chunked f"\n\n**-** {(if raid.gmax ('Gmax') (''))} {(if raid.shiny ('Shiny') (''))} {(.capitalize raid.pokemon)}")))
+          (except [e [Exception]]
+            (print e)
+            (await (.send ctx "An error has occurred."))
+            (return)))
+        (if (> (len raids) 0)
+          (do
+            (setv description [])
+            (for [page raid-list]
+              (setv de-string "")
+              (for [item page]
+                (setv de-string (+ de-string item)))
+              (.append description de-string))
+            (setv embed (lfor page description (.Embed discord :description (+ "**Current Raids:**" page) :color (.purple discord.Colour))))
+            (setv paginator (BotEmbedPaginator ctx embeds))
+            (await (.run paginator)))
+          (await (.send ctx "No raids are running.")))))
+  #@((.command commands)
+      (defn/a queue [self ctx &rest ^str pokemon]
+        #[[*Look up a raid's queue*
 
         `[pokemon]` is the name of the Pokemon raid you want to view.
         **Usage**: `{prefix}queue [pokemon]`
-        **Example**: `{prefix}queue Pikachu`
-        """
-        await self.bot.wait_until_ready()
-        raid = None
-        for raid_id, raid in self.bot.raid_data.items():
-            if raid.pokemon == pokemon.lower() and raid.guild_id == ctx.guild.id:
-                raid = raid
-                break
-            else:
-                raid = None
-
-        if not raid:
-            await ctx.send(
-                "There is no raid running with that Pokemon, or you did not specify a "
-                "Pokemon, try using this command again."
-            )
-            return
-
-        users = [
-            user
-            for user in self.bot.queue_data.values()
-            if user["guild_id"] == ctx.guild.id
-            if user["raid_id"] == raid.id
-        ]
-
-        if len(users) > 0:
-            description = []
-            raid_pokemon = ""
-            if raid.gmax:
-                raid_pokemon += "Gmax "
-            if raid.shiny:
-                raid_pokemon += "Shiny "
-            raid_pokemon += raid.pokemon.capitalize()
+        **Example**: `{prefix}queue Pikachu`]]
+        (await (.wait-until-ready self.bot))
+        (setv raid None)
+        (for [[raid-id raid] (.items self.bot.raid-data)]
+          (if (and (= raid.pokemon (.lower pokemon)) (= raid.guild-id ctx.guild.id))
+            (do
+              (setv raid raid)
+              (break))
+            (setv raid None)))
+        (if-not raid
+          (do
+            (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
+            (return)))
+        (setv users (lfor user (.values self.bot.queue-data) (if (and (= (get user "guild-id") ctx.guild.id) (= (get user "raid-id") raid.id)) user)))
+        (if (> (len users) 0)
+          (do
+            (setv description [])
+            (setv raid-pokemon "")
+            (if raid.gmax
+              (setv raid-pokemon (+ raid-pokemon "Gmax ")))
+            (if raid.shiny
+              (setv raid-pokemon (+ raid-pokemon "Shiny ")))
+            (setv raid-pokemon (+ raid-pokemon (.capitalize raid.pokemon))))
+          (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
+          (try
+            (setv user-list (lfor ))
+            (except [e [Exception]]
+              (print e)
+              (await (.send ctx "An error has occurred."))
+              (return)))))))
 
             try:
                 user_list = [
                     [f"**-** <@{user['user_id']}>\n" for user in chunked]
                     for chunked in chunk(users, 5)
                 ]
-            except Exception as e:
-                print(e)
-                await ctx.send("An error has occurred.")
-                return
 
             for page in user_list:
                 de_string = ""
@@ -154,11 +117,6 @@ class Raids(commands.Cog):
 
             paginator = BotEmbedPaginator(ctx, embeds)
             await paginator.run()
-        else:
-            await ctx.send(
-                "There is no raid running with that Pokemon, or you did not specify a "
-                "Pokemon, try using this command again."
-            )
 
     @commands.command()
     async def join(self, ctx, *, raid_pokemon: str):

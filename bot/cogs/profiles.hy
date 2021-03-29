@@ -75,14 +75,14 @@
               (do
                 (setv prefix (get-guild-prefix self.bot ctx.guild.id))
                 (setv embed.description
-                    #[f[**You haven't configured your profile yet!**\n
+                    #[[**You haven't configured your profile yet!**\n
                     To configure your profile use: \n`{prefix}profile <key> <value>`\n
                     **Possible keys**: \n
                     `name, fc, timezone`\n
                     **Examples**:\n
                     `{prefix}profile name Ditto`\n
                     `{prefix}profile fc SW-000-0000`\n
-                    `{prefix}profile timezone NYC`\n]f]
+                    `{prefix}profile timezone NYC`\n]]
                 )))))
         (await (.send ctx :embed embed))))
   #@((.command profile :aliases ["name" "username"])

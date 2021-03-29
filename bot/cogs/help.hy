@@ -37,7 +37,7 @@
     (.set-footer embed
       :text "Thank you for using Ditto!"
       :icon-url self.bot.user.avatar-url)
-    (if-not command-name
+    (if command-name
       (do
         (setv cmd (.get ctx.bot.all-commands command-name))
         (if cmd
@@ -52,7 +52,7 @@
         (await (get-create-user ctx.message.author.id))
         (if ctx.message.author.guild-permissions.administrator
           (do
-            (await (.admin-help self ctx))
+            (await (.admin-help self ctx command-name))
             (return)))
         (setv prefix (get-guild-prefix ctx.bot ctx.guild.id))
         (setv embed (await
@@ -62,7 +62,7 @@
         (.set-footer embed
           :text "Thank you for using Ditto!"
           :icon-url self.bot.user.avatar-url)
-        (if-not command-name
+        (if command-name
           (do
             (setv cmd (.get ctx.bot.all-commands command-name))
             (if cmd
