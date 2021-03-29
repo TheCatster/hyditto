@@ -139,36 +139,33 @@
                 (return))))
           (do
             (await (.send ctx "No raid is running for this pokemon."))
-            (return))))))
-
-
-    @commands.command()
-    async def leave(self, ctx, *, raid_pokemon: str):
-        """*Leave a raid you are in.*
+            (return)))))
+  #@((.command commands)
+      (defn/a leave [self ctx &rest ^str raid-pokemon]
+        #[[*Leave a raid you are in.*
 
         `[pokemon]` is the Pokemon raid you want to leave
         **Usage**: `{prefix}leave [pokemon]`
-        **Example**: `{prefix}leave Pikachu`
-        """
-        raid = None
-        for raid_id, raid in self.bot.raid_data.items():
-            if raid.pokemon == raid_pokemon.lower() and raid.guild_id == ctx.guild.id:
-                raid = raid
-                break
-            else:
-                raid = None
-        if raid:
-            queue = [
-                user["user_id"]
-                for user in self.bot.queue_data.values()
-                if user["raid_id"] == raid.id
-                if user["guild_id"] == ctx.guild.id
-            ]
-            if ctx.message.author.id == raid.host_id:
-                await ctx.send(
-                    "You cannot leave your own raid. Please close it if you are done hosting."
-                )
-                return
+        **Example**: `{prefix}leave Pikachu`]]
+        (setv raid-pokemon (.join " " raid-pokemon))
+        (setv raid None)
+        (for [[raid-id raid] (.items self.bot.raid-data)]
+          (if (and (= raid.pokemon (.lower raid-pokemon)) (= raid.guild-id ctx.guild.id))
+              (do
+                (setv raid raid)
+                (break))
+              (setv raid None)))
+        (if raid
+            (do
+              (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "raid-id") raid.id) (= (get user "guild-id") ctx.guild.id)) (get user "user-id"))))
+              (if (= ctx.message.author.id raid.host-id)
+                  (do
+                    (await (.send ctx "You cannot leave your own raid. Please close it if you are done hosting."))
+                    (return))))
+            (do
+              (await (.send ctx "No such raid."))
+              (return))))))
+
             elif ctx.message.author.id not in queue:
                 await ctx.send("You are not in the queue for this raid.")
                 return
@@ -178,9 +175,6 @@
                 )
                 self.bot.queue_data.pop(f"{raid.id}+{ctx.message.author.id}", None)
                 return
-        else:
-            await ctx.send("No such raid.")
-            return
 
     @commands.command()
     async def host(self, ctx, gmax: str, shiny: str, *, pokemon_name: str):
