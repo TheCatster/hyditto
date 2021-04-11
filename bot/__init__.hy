@@ -45,7 +45,7 @@
     (defn/a on-ready []
       (setv bot.invite (.format invite-link bot.user.id))
       (await (.setup database))
-      (print "Logged in as" bot.user ".\nServing" (len bot.users)
+      (print f"Logged in as {bot.user}.\nServing" (len bot.users)
         "users in" (len bot.guilds) "guilds.\nInvite:" (.format invite-link bot.user.id))
       (with [f (open "bot/pokemon/data/pokemon.json" "r")]
         (setv bot.pokemon-images (.load ujson f)))
