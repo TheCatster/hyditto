@@ -45,7 +45,7 @@
     (defn/a on-ready []
       (setv bot.invite (.format invite-link bot.user.id))
       (await (.setup database))
-      (print "Logged in as" bot.user ".\nServing" (len bot.users)
+      (print f"Logged in as {bot.user}.\nServing" (len bot.users)
         "users in" (len bot.guilds) "guilds.\nInvite:" (.format invite-link bot.user.id))
       (with [f (open "bot/pokemon/data/pokemon.json" "r")]
         (setv bot.pokemon-images (.load ujson f)))
@@ -53,7 +53,7 @@
       (setv bot.raid-data (await (preload-raid-data)))
       (setv bot.queue-data {})
       (lfor raid (bot.raid-data.values)
-        (setv (get bot.queue-data (raid.id "+" raid.host))
+        (setv (get bot.queue-data f"{raid.id} + {raid.host-id}")
           {"raid-id" raid.id  "user-id" raid.host-id  "guild-id" raid.guild-id}))
       (.loop.create-task bot (presence-task))
       (.loop.create-task bot (sync-guild-data))))

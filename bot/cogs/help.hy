@@ -6,15 +6,13 @@
 
 
 (defn/a create-bot-help [embed mapping]
-  (lfor [cog cmds] (.items mapping)
-    (do
-      (setv cmd-str "")
-      (for [cmd [cmds]]
-        (setv cmd (get cmd 0))
-        (if-not (and cmd.hidden (< (len cmd.checks) 1))
-          (setv cmd-str (+ cmd-str f"`{cmd.name}`: {cmd.short-doc}\n"))))
+  (for [[cog cmds] (.items mapping)]
+    (setv cmd-str "")
+    (for [cmd cmds]
+      (if-not (and cmd.hidden (< (len cmd.checks) 1))
+        (setv cmd-str (+ cmd-str f"`{cmd.name}`: {cmd.short-doc}\n"))))
     (if cmd-str
-      (.add-field embed :name cog.qualified-name :value cmd-str :inline False))))
+      (.add-field embed :name cog.qualified-name :value cmd-str :inline False)))
   (return embed))
 
 
@@ -37,7 +35,7 @@
     (.set-footer embed
       :text "Thank you for using Ditto!"
       :icon-url self.bot.user.avatar-url)
-    (if-not command-name
+    (if command-name
       (do
         (setv cmd (.get ctx.bot.all-commands command-name))
         (if cmd
@@ -52,7 +50,7 @@
         (await (get-create-user ctx.message.author.id))
         (if ctx.message.author.guild-permissions.administrator
           (do
-            (await (.admin-help self ctx))
+            (await (.admin-help self ctx command-name))
             (return)))
         (setv prefix (get-guild-prefix ctx.bot ctx.guild.id))
         (setv embed (await
@@ -62,7 +60,7 @@
         (.set-footer embed
           :text "Thank you for using Ditto!"
           :icon-url self.bot.user.avatar-url)
-        (if-not command-name
+        (if command-name
           (do
             (setv cmd (.get ctx.bot.all-commands command-name))
             (if cmd
