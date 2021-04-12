@@ -7,8 +7,8 @@
 
 <div id="badges" align="center">
 
-  ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/TheCatster/Ditto/Python%20flake8%20and%20black)
-  ![Discord](https://img.shields.io/discord/698941076861616159?label=Discord)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/TheCatster/Ditto/Python%20flake8%20and%20black)
+![Discord](https://img.shields.io/discord/698941076861616159?label=Discord)
 
 </div>
 

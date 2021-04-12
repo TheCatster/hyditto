@@ -22,6 +22,7 @@
         **Usage**: `{prefix}queue pokemon`
         **Example**: `{prefix}queue Pikachu`]]
         (await (.wait-until-ready self.bot))
+        (setv pokemon (.join " " pokemon))
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
           (if (and (= raid.pokemon (.lower pokemon)) (= raid.guild-id ctx.guild.id))
@@ -43,9 +44,9 @@
             (if raid.shiny
               (setv raid-pokemon (+ raid-pokemon "Shiny ")))
             (setv raid-pokemon (+ raid-pokemon (.capitalize raid.pokemon))))
-          (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
+          (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again.")))
           (try
-            (setv user-list (lfor chunked (chunk users 5) (lfor user chunked f"**-** <@{(get user \"user_id\")}>\n")))
+            (setv user-list (lfor chunked (chunk users 5) (lfor user chunked f"**-** <@{(get user \"user-id\")}>\n")))
             (except [e Exception]
               (print e)
               (await (.send ctx "An error has occurred."))
@@ -68,7 +69,7 @@
               (await (.send ctx "An image for this pokemon cannot be found... contact the dev regarding this issue."))
               (return)))
           (setv paginator (BotEmbedPaginator ctx embeds))
-          (await (.run paginator)))))
+          (await (.run paginator))))
   #@((.command commands)
       (defn/a raids [self ctx]
         #[[*Look at available raids.*
@@ -83,9 +84,8 @@
         (setv raid-list [])
         (try
           (for [chunked (chunk raids 5)]
-            (print "test"))
             (.append raid-list
-              (lfor raid chunked f"\n\n**-** {(if raid.gmax (\"Gmax\") (\"\"))} {(if raid.shiny (\"Shiny\") (\"\"))} {(.capitalize raid.pokemon)}"))
+              (lfor raid chunked f"\n\n**-** {(if raid.gmax \"Gmax\" \"\")} {(if raid.shiny \"Shiny\" \"\")} {(.capitalize raid.pokemon)}")))
           (except [e Exception]
             (print e)
             (await (.send ctx "An error has occurred."))
@@ -97,10 +97,10 @@
               (setv de-string "")
               (for [item page]
                 (setv de-string (+ de-string item)))
-              (.append description de-string)))
-            (setv embed (lfor page description (.Embed discord :description (+ "**Current Raids:**" page) :color (.purple discord.Colour))))
+              (.append description de-string))
+            (setv embeds (lfor page description (.Embed discord :description (+ "**Current Raids:**" page) :color (.purple discord.Colour))))
             (setv paginator (BotEmbedPaginator ctx embeds))
-            (await (.run paginator))
+            (await (.run paginator)))
           (await (.send ctx "No raids are running.")))))
   #@((.command commands)
       (defn/a join [self ctx &rest ^str raid-pokemon]
@@ -109,6 +109,7 @@
         `pokemon` is the Pokemon raid you want to join
         **Usage**: `{prefix}join pokemon`
         **Example**: `{prefix}join Pikachu`]]
+        (setv raid-pokemon (.join " " raid-pokemon))
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
           (if (and (= raid.pokemon (.lower raid-pokemon)) (= raid.guild-id ctx.guild.id))
@@ -119,14 +120,14 @@
         (if raid
             (do
               (setv host-id raid.host-id)
-              (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "guild-id") (ctx.guild.id)) (= (get user "raid-id") (raid.id))) (user))))
+              (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "guild-id") ctx.guild.id) (= (get user "raid-id") raid.id)) user)))
               (if (= (len queue) 0)
                   (do
                     (await (.send ctx "No raid is running for this pokemon."))
                     (.pop self.bot.raid-data raid.id None)
                     (await (.delete raid))
                     (return)))
-              (if-not (.contains queue ctx.message.author)
+              (if-not (in ctx.message.author queue)
                       (do
                         (setv (get self.bot.queue-data f"{raid.id}+{ctx.message.author.id}") {"raid-id" raid.id  "user-id" ctx.message.author.id  "guild-id" ctx.guild.id})
                         (setv host (await (get-create-user host-id)))
@@ -149,21 +150,22 @@
         `pokemon` is the Pokemon raid you want to leave
         **Usage**: `{prefix}leave pokemon`
         **Example**: `{prefix}leave Pikachu`]]
+        (setv raid-pokemon (.join " " raid-pokemon))
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
-          (if (.contains (.items self.bot.raid-data) (, raid-id raid))
+          (if (and (= raid.pokemon (.lower raid-pokemon)) (= raid.guild-id ctx.guild.id))
               (do
                 (setv raid raid)
                 (break))
               (setv raid None)))
         (if raid
             (do
-              (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "guild-id") (ctx.guild.id)) (= (get user "raid-id") (raid.id))) (user))))
+              (setv queue (lfor user (.values self.bot.queue-data) (if (and (= (get user "guild-id") ctx.guild.id) (= (get user "raid-id") raid.id)) user)))
               (if (= ctx.message.author.id raid.host-id)
                   (do
                     (await (.send ctx "You cannot leave your own raid. Please close it if you are done hosting."))
                     (return))
-                  (not (.contains queue ctx.message.author.id))
+                  (not (in ctx.message.author.id queue))
                   (do
                     (await (.send ctx "You are not in the queue for this raid."))
                     (return))
@@ -183,6 +185,7 @@
         `shiny` is a y or n and is whether or not your Pokemon is shiny
         **Usage**: `{prefix}host gmax shiny pokemon`
         **Example**: `{prefix}host y y Pikachu`]]
+        (setv pokemon-name (.join " " pokemon-name))
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
           (if (and (= raid.host-id ctx.message.author.id) (= raid.guild-id ctx.guild.id))
@@ -207,18 +210,18 @@
             (do
               (await (.send ctx "Please say 'y' or 'n' for gmax and shiny. Try running the command again."))
               (return)))
-        (if (not (.contains (.keys self.bot.pokemon-images) pokemon-name))
+        (if (not (in pokemon-name (.keys self.bot.pokemon-images)))
             (do
               (await (.send ctx
                 (+ "This is not a valid Pokemon name, or it has been misspelled. "
                    "Try running this command again.")))
               (return)))
-        (setv raid (.create Raid
+        (setv raid (await(.create Raid
                             :guild-id ctx.guild.id
                             :pokemon pokemon-name
                             :shiny shiny
                             :gmax gmax
-                            :host-id ctx.message.author.id))
+                            :host-id ctx.message.author.id)))
         (setv (get self.bot.raid-data raid.id) raid)
         (setv (get self.bot.queue-data f"{raid.id}+{ctx.message.author.id}") {"raid-id" raid.id  "user-id" ctx.message.author.id  "guild-id" ctx.guild.id})
         (setv user (await (get-create-user ctx.message.author.id)))
@@ -236,6 +239,7 @@
         `pokemon` is the Pokemon raid you want to close
         **Usage**: `{prefix}close pokemon`
         **Example**: `{prefix}close Pikachu`]]
+        (setv pokemon-name (.join " " pokemon-name))
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
           (if (and (= raid.pokemon (.lower pokemon-name)) (= raid.guild-id ctx.guild.id))

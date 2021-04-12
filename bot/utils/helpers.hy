@@ -17,7 +17,7 @@
 
 (defn chunk [_list ^int amount]
   (for [name (range 0 (len _list) amount)]
-    (yield (get _list name (+ name amount)))))
+    (yield (cut _list name (+ name amount)))))
 
 
 (defn/a update-xp [^User user ^float modifier]

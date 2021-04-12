@@ -53,7 +53,7 @@
       (setv bot.raid-data (await (preload-raid-data)))
       (setv bot.queue-data {})
       (lfor raid (bot.raid-data.values)
-        (setv (get bot.queue-data (raid.id "+" raid.host))
+        (setv (get bot.queue-data f"{raid.id} + {raid.host-id}")
           {"raid-id" raid.id  "user-id" raid.host-id  "guild-id" raid.guild-id}))
       (.loop.create-task bot (presence-task))
       (.loop.create-task bot (sync-guild-data))))

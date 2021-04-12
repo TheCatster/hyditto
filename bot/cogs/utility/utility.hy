@@ -23,7 +23,7 @@
         #[[*Current ping and latency of the bot*
 
         **Example**: `{prefix}ping`]]
-        (setv embed (await (create_embed)))
+        (setv embed (await (create_embed :title "**Current Ping**")))
         (setv before-time (.time time))
         (setv msg (await (.send ctx :embed embed)))
         (setv latency (round (* self.bot.latency 1000)))
