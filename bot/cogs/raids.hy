@@ -9,42 +9,12 @@
 
 
 (defclass Raids [commands.Cog]
-  #[[:video_game:]]
   (defn __init__ [self bot]
     (setv self.bot bot))
-  #@((.command commands)
-      (defn/a raids [self ctx]
-        #[[*Look at available raids.*
-
-        **Usage**: `{prefix}raids`
-        **Example**: `{prefix}raids`]]
-        (setv raids (lfor raid (.values self.bot.raid-data) (if (= raid.guild-id ctx.guild.id) raid)))
-        (if (= (len raids) 0)
-          (do
-            (await (.send ctx "There are currently no raids running. You should start one!"))
-            (return)))
-        (setv raid-list [])
-        (try
-          (for [chunked (chunk raids 5)]
-            (.append raid-list
-              (lfor raid chunked f"\n\n**-** {(if raid.gmax ('Gmax') (''))} {(if raid.shiny ('Shiny') (''))} {(.capitalize raid.pokemon)}")))
-          (except [e [Exception]]
-            (print e)
-            (await (.send ctx "An error has occurred."))
-            (return)))
-        (if (> (len raids) 0)
-          (do
-            (setv description [])
-            (for [page raid-list]
-              (setv de-string "")
-              (for [item page]
-                (setv de-string (+ de-string item)))
-              (.append description de-string))
-            (setv embed (lfor page description (.Embed discord :description (+ "**Current Raids:**" page) :color (.purple discord.Colour))))
-            (setv paginator (BotEmbedPaginator ctx embeds))
-            (await (.run paginator)))
-          (await (.send ctx "No raids are running.")))))
-  #@((.command commands)
+ #@((.listener commands.Cog)
+      (defn/a on-ready [self]
+        (print "Raids Cog ready.")))
+ #@((.command commands)
       (defn/a queue [self ctx &rest ^str pokemon]
         #[[*Look up a raid's queue*
 
@@ -75,8 +45,8 @@
             (setv raid-pokemon (+ raid-pokemon (.capitalize raid.pokemon))))
           (await (.send ctx "There is no raid running with that Pokemon, or you did not specify a Pokemon, try using this command again."))
           (try
-            (setv user-list (lfor chunked (chunk users 5) (lfor user chunked f"**-** <@{(get user 'user_id')}>\n")))
-            (except [e [Exception]]
+            (setv user-list (lfor chunked (chunk users 5) (lfor user chunked f"**-** <@{(get user \"user_id\")}>\n")))
+            (except [e Exception]
               (print e)
               (await (.send ctx "An error has occurred."))
               (return)))
@@ -98,8 +68,40 @@
               (await (.send ctx "An image for this pokemon cannot be found... contact the dev regarding this issue."))
               (return)))
           (setv paginator (BotEmbedPaginator ctx embeds))
-          (await (.run paginator)))
-        ))
+          (await (.run paginator)))))
+  #@((.command commands)
+      (defn/a raids [self ctx]
+        #[[*Look at available raids.*
+
+        **Usage**: `{prefix}raids`
+        **Example**: `{prefix}raids`]]
+        (setv raids (lfor raid (.values self.bot.raid-data) (if (= raid.guild-id ctx.guild.id) raid)))
+        (if (= (len raids) 0)
+          (do
+            (await (.send ctx "There are currently no raids running. You should start one!"))
+            (return)))
+        (setv raid-list [])
+        (try
+          (for [chunked (chunk raids 5)]
+            (print "test"))
+            (.append raid-list
+              (lfor raid chunked f"\n\n**-** {(if raid.gmax (\"Gmax\") (\"\"))} {(if raid.shiny (\"Shiny\") (\"\"))} {(.capitalize raid.pokemon)}"))
+          (except [e Exception]
+            (print e)
+            (await (.send ctx "An error has occurred."))
+            (return)))
+        (if (> (len raids) 0)
+          (do
+            (setv description [])
+            (for [page raid-list]
+              (setv de-string "")
+              (for [item page]
+                (setv de-string (+ de-string item)))
+              (.append description de-string)))
+            (setv embed (lfor page description (.Embed discord :description (+ "**Current Raids:**" page) :color (.purple discord.Colour))))
+            (setv paginator (BotEmbedPaginator ctx embeds))
+            (await (.run paginator))
+          (await (.send ctx "No raids are running.")))))
   #@((.command commands)
       (defn/a join [self ctx &rest ^str raid-pokemon]
         #[[*Join an existing Pokemon raid.*
@@ -149,7 +151,7 @@
         **Example**: `{prefix}leave Pikachu`]]
         (setv raid None)
         (for [[raid-id raid] (.items self.bot.raid-data)]
-          (if ([[raid-id raid] [(.items self.bot.raid-data)]])
+          (if (.contains (.items self.bot.raid-data) (, raid-id raid))
               (do
                 (setv raid raid)
                 (break))
