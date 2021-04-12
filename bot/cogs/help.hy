@@ -6,13 +6,12 @@
 
 
 (defn/a create-bot-help [embed mapping]
-  (lfor [cog cmds] (.items mapping)
-    (do
+  (for [[cog cmds] (.items mapping)]
       (setv cmd-str "")
-      (for [cmd [cmds]]
+      (for [cmd cmds]
         (setv cmd (get cmd 0))
         (if-not (and cmd.hidden (< (len cmd.checks) 1))
-          (setv cmd-str (+ cmd-str f"`{cmd.name}`: {cmd.short-doc}\n"))))
+          (setv cmd-str (+ cmd-str f"`{cmd.name}`: {cmd.short-doc}\n")))))
     (if cmd-str
       (.add-field embed :name cog.qualified-name :value cmd-str :inline False))))
   (return embed))
