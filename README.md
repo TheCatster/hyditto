@@ -25,6 +25,6 @@ Hosting Pokemon raids with your friends? Use Ditto to ease the process and incen
 
 ### License:
 
-Distributed under the GNU Public License (GPLv3) (See accompanying file LICENSE)
+Distributed under the GNU General Public License 3 (GPLv3) (See accompanying file LICENSE)
 
 Keywords: hy, python, discord, gino, postgresql
